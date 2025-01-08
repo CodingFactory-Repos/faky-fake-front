@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, ChangeEvent, FormEvent } from "react";
+import { FiUpload, FiLoader } from 'react-icons/fi'; // Importation des icônes
 
 export default function Home() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -13,7 +14,31 @@ export default function Home() {
         if (event.target.files && event.target.files.length > 0) {
             const file = event.target.files[0];
             setSelectedFile(file);
-            setPreview(URL.createObjectURL(file));
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => {
+                const img = new Image();
+                img.src = reader.result as string;
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Resize image if its dimensions exceed 400x400
+                    if (width > 400 || height > 400) {
+                        const scaleFactor = Math.min(400 / width, 400 / height);
+                        width = width * scaleFactor;
+                        height = height * scaleFactor;
+                    }
+
+                    const elem = document.createElement("canvas");
+                    elem.width = width;
+                    elem.height = height;
+                    const ctx = elem.getContext("2d");
+                    ctx?.drawImage(img, 0, 0, width, height);
+                    setPreview(elem.toDataURL());
+                };
+            };
         }
     };
 
@@ -27,11 +52,11 @@ export default function Home() {
         setLoading(true);
         setError(null);
         const formData = new FormData();
-        formData.append("file", selectedFile);
+        formData.append("image", selectedFile);  // Field name is now 'image' to match the backend
 
         try {
-            const url = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-            const response = await fetch(url, {
+            const url = process.env.NEXT_PUBLIC_BACK_URL || "http://localhost:5000";
+            const response = await fetch(url + "/upload", {
                 method: "POST",
                 body: formData,
             });
@@ -64,16 +89,21 @@ export default function Home() {
                         >
                             Upload your image
                         </label>
-                        <input
-                            type="file"
-                            id="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="w-full p-2 border border-gray-300 rounded-lg"
-                        />
+                        <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 cursor-pointer">
+                            <input
+                                type="file"
+                                id="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                className="hidden"
+                            />
+                            <label htmlFor="file" className="flex flex-col items-center cursor-pointer">
+                                <FiUpload size={24} className="text-blue-500" />
+                                <span className="text-blue-500 mt-2">Choose File</span>
+                            </label>
+                        </div>
                     </div>
                     {preview && (
-                        // Center the image
                         <div className="mt-4 flex justify-center">
                             <img
                                 src={preview}
@@ -87,7 +117,13 @@ export default function Home() {
                         className="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition"
                         disabled={loading}
                     >
-                        {loading ? "Processing..." : "Analyze"}
+                        {loading ? (
+                            <span className="flex items-center justify-center">
+                                <FiLoader className="animate-spin mr-2" /> Processing...
+                            </span>
+                        ) : (
+                            "Analyze"
+                        )}
                     </button>
                 </form>
                 {error && (
