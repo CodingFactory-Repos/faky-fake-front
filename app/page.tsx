@@ -76,7 +76,9 @@ export default function Home() {
       }
     }
 
-    ctx.putImageData(imageData, 0, 0);
+    if (ctx) {
+      ctx.putImageData(imageData, 0, 0);
+    }
 
     // Return the base64 image
     return canvas.toDataURL();
