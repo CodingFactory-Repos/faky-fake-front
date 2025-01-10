@@ -6,11 +6,11 @@ export interface PredictionResult {
 }
 
 export class ImageDetectionService {
-  private static readonly API_URL = "http://localhost:8000/predict";
+  private static readonly API_URL = process.env.NEXT_PUBLIC_BACK_URL + "/upload";
 
   static async analyzeImage(file: File): Promise<PredictionResult> {
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("image", file);
 
     const response = await fetch(this.API_URL, {
       method: "POST",
