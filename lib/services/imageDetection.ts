@@ -3,6 +3,7 @@ export interface PredictionResult {
   fake_probability: number;
   is_fake: boolean;
   model_used: string;
+  cam_map: number[][];
 }
 
 export class ImageDetectionService {
