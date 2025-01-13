@@ -7,7 +7,8 @@ export interface PredictionResult {
 }
 
 export class ImageDetectionService {
-  private static readonly API_URL = process.env.NEXT_PUBLIC_BACK_URL + "/upload";
+  private static readonly API_URL =
+    process.env.NEXT_PUBLIC_BACK_URL + "/upload";
 
   static async analyzeImage(file: File): Promise<PredictionResult> {
     const formData = new FormData();
